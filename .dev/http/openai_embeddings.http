@@ -1,0 +1,10 @@
+### Embedding Example
+POST https://api.openai.com/v1/embeddings
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{ token }}
+
+{
+  "model": "text-embedding-ada-002",
+  "input": "An apple is a fruit"
+}

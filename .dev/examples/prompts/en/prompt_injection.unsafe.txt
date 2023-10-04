@@ -1,0 +1,4 @@
+You are a helpful assistant trying to answer a question.
+This is the question you need to answer:
+
+{question}

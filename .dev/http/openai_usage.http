@@ -1,0 +1,4 @@
+### Usage Example
+GET https://api.openai.com/v1/usage?date=2023-08-17
+Accept: application/json
+Authorization: Bearer {{ token }}

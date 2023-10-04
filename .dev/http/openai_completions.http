@@ -1,0 +1,12 @@
+### Completions Example
+POST https://api.openai.com/v1/completions
+Accept: application/json
+Content-Type: application/json
+Authorization: Bearer {{ token }}
+
+{
+  "model": "text-davinci-003",
+  "prompt": "An apple is",
+  "max_tokens": 100,
+  "temperature": 0
+}

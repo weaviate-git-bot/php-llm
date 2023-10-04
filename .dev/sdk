@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+set -e
+
+COMPOSE="${COMPOSE_CMD:-docker compose} --project-directory .dev/docker"
+CMD=$1
+SDK=$0
+
+function compose() {
+    $COMPOSE "$@"
+}
+
+function sdk() {
+    $SDK "$@"
+}
+
+function stack_build() {
+    compose build --no-cache --pull
+}
+
+function stack_exec() {
+    compose exec "$@"
+}
+
+function stack_run() {
+    compose run --rm "$@"
+}
+
+function stack_boot() {
+    compose up -d --remove-orphans --wait
+}
+
+function stack_destroy() {
+    compose --profile prod down
+    compose down
+}
+
+function stack_stop() {
+    compose stop
+}
+
+function stack_start() {
+    compose start
+}
+
+function install_dependencies() {
+    stack_run lib composer install
+}
+
+function test_unit() {
+    stack_exec lib vendor/bin/phpunit --testsuite=unit
+}
+
+function test_integration() {
+    stack_exec lib vendor/bin/phpunit --testsuite=integration
+}
+
+function static_analysis() {
+    stack_exec lib vendor/bin/psalm --no-cache --show-info=true
+}
+
+function code_style_check() {
+    stack_exec lib vendor/bin/php-cs-fixer fix --dry-run -v
+}
+
+function code_style_fix() {
+    stack_exec lib vendor/bin/php-cs-fixer fix
+}
+
+shift
+
+case $CMD in
+  'setup')
+    stack_build
+    install_dependencies
+    stack_boot
+    stack_run lib php -v
+    stack_run lib composer -V
+    echo "Ready for development!"
+  ;;
+  'compose')
+    compose "$@"
+  ;;
+  'composer')
+    stack_exec lib composer "$@"
+  ;;
+  'php')
+    stack_exec lib php "$@"
+  ;;
+  'fmt')
+    code_style_fix
+  ;;
+  'analyze')
+    static_analysis
+  ;;
+  'test')
+    test_unit
+    test_integration
+  ;;
+  'shell')
+    stack_exec lib ash
+  ;;
+  'pr')
+    code_style_fix
+    static_analysis
+    test_unit
+    test_integration
+  ;;
+  '')
+    echo "You must specify a command"
+  ;;
+  *)
+    echo "Command $CMD is not valid"
+  ;;
+esac

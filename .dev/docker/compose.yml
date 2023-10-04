@@ -1,0 +1,71 @@
+version: "3.8"
+
+name: "php-llm"
+
+services:
+
+  lib:
+    image: mnavarrocarter/php-llm:dev
+    build:
+      context: ../..
+      dockerfile: .dev/docker/lib/Dockerfile
+      target: dev
+    user: ${UID:-1000}
+    environment:
+      XDEBUG_MODE: "develop,coverage,debug,profile"
+    working_dir: /mnavarro/lib
+    volumes: ["../..:/mnavarro/lib"]
+
+  weaviate:
+    image: semitechnologies/weaviate:1.20.5
+    ports:
+      - "8080:8080"
+    environment:
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: 'true'
+      CLUSTER_HOSTNAME: node1
+      PERSISTENCE_DATA_PATH: '/tmp/weaviate'
+
+  elastic:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    restart: unless-stopped
+    environment:
+      - "xpack.security.enabled=false"
+      - "discovery.type=single-node"
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    cap_add:
+      - IPC_LOCK
+    healthcheck:
+      test: curl -u elastic:elastic -s -f elasticsearch:9200/_cat/health >/dev/null || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  opensearch:
+    image: opensearchproject/opensearch:1.3.10
+    restart: unless-stopped
+    environment:
+      - "discovery.type=single-node"
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - ./opensearch/opensearch.yml:/usr/share/opensearch/config/opensearch.yml
+    healthcheck:
+      test: curl -u opensearch:opensearch -s -f opensearch:9200/_cat/health >/dev/null || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 5
