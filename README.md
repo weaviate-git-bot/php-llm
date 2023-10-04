@@ -3,6 +3,8 @@ PHP LLM
 
 A toolkit to quickly build applications using Large Language Models in PHP
 
+> Still under development!
+
 ## "How do I get it?"
 
 You can just type in your PHP project:
